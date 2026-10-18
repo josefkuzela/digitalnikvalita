@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DigitálníKvalita | Digitalizace výroby a kvality</title>
+<meta name="description" content="Zakázková digitalizace a automatizace ručních a papírových činností ve výrobě a řízení kvality. Microsoft 365, Power Automate, SharePoint.">
+<meta name="theme-color" content="#F2F2F7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230071E3'/%3E%3Cpath d='M8 17l5 5 11-12' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+/* Světlý design podle zásad iOS: velký titulek, seskupené seznamy na šedém podkladu,
+   přepínače, jemné dělicí čáry. Bez externích fontů a skriptů. */
+:root{
+  --bg:#F2F2F7; --card:#FFFFFF; --ink:#1C1C1E; --muted:#6C6C70; --sep:#E5E5EA; --fill:#E9E9EE;
+  --blue:#0071E3; --link:#0066CC; --green:#34C759; --ok:#1E7A3A; --nok:#D70015;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:72px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:1.0625rem;line-height:1.47;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:3px solid rgba(0,113,227,.45);outline-offset:2px}
+.wrap{max-width:1040px;margin-inline:auto;padding-inline:20px}
+
+/* navigační lišta */
+.bar{position:sticky;top:0;z-index:10;background:rgba(242,242,247,.82);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--sep)}
+.bar .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 20px;min-height:56px;padding-block:8px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:600;font-size:1.0625rem;letter-spacing:-.01em}
+.brand:hover{text-decoration:none}
+.mark{width:28px;height:28px;border-radius:7px;background:var(--blue);display:grid;place-items:center}
+.mark svg{width:16px;height:16px}
+nav{display:flex;flex-wrap:wrap;align-items:center;gap:2px 18px;font-size:.9375rem}
+nav a{color:var(--muted)}
+nav a:hover{color:var(--ink);text-decoration:none}
+.lang{display:flex;background:var(--fill);border-radius:8px;padding:2px}
+.lang button{font:inherit;font-size:.8125rem;font-weight:500;min-height:28px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:var(--ink);cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.14),0 0 0 .5px rgba(0,0,0,.04)}
+@media (max-width:640px){nav a{display:none}}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:40px 56px;align-items:center;padding-block:clamp(36px,7vw,88px) clamp(40px,7vw,80px)}
+@media (max-width:820px){.hero{grid-template-columns:minmax(0,1fr)}}
+.eyebrow{margin:0 0 12px;font-size:.9375rem;font-weight:600;color:var(--blue)}
+h1{margin:0 0 18px;font-size:clamp(2.5rem,7.4vw,4rem);line-height:1.05;font-weight:700;letter-spacing:-.03em;text-wrap:balance}
+.lead{margin:0 0 10px;font-size:1.25rem;line-height:1.4;max-width:30em}
+.sub{margin:0 0 28px;color:var(--muted);max-width:30em}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border:0;border-radius:999px;background:var(--blue);color:#fff;font:inherit;font-size:1.0625rem;font-weight:600;cursor:pointer}
+.btn:hover{text-decoration:none;filter:brightness(1.06)}
+.btn.tint{background:rgba(0,113,227,.1);color:var(--link)}
+
+/* seskupený seznam (iOS grouped list) */
+.group{background:var(--card);border-radius:16px;overflow:hidden;min-width:0}
+.group-title{margin:0 16px 8px;font-size:.8125rem;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+.item{padding:16px 20px;position:relative}
+.item+.item::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+
+/* demo */
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;padding:12px 16px 12px 20px;position:relative}
+.row+.row::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.lbl{font-size:1rem;line-height:1.35}
+.state{display:block;margin-top:2px;font-size:.8125rem;font-weight:500}
+.state.ok{color:var(--ok)}
+.state.nok{color:var(--nok)}
+.switch{position:relative;width:51px;height:31px;padding:0;border:0;border-radius:999px;background:#D1D1D6;cursor:pointer;transition:background .2s;flex:none}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .2s}
+.switch[aria-checked="true"]{background:var(--green)}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+.score{padding:16px 20px 18px;display:grid;gap:10px;position:relative}
+.score::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.score-line{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.score-lbl{font-size:.9375rem;color:var(--muted)}
+.score-num{font-size:2.25rem;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.meter{height:8px;border-radius:999px;background:var(--fill);overflow:hidden}
+.meter span{display:block;height:100%;border-radius:999px;background:var(--green);transition:width .25s}
+.plan{padding:14px 20px 16px;position:relative;font-size:.9375rem}
+.plan::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.plan h3{margin:0 0 8px;font-size:.8125rem;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+.plan ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.plan li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--nok);margin-top:7px}
+.plan .none{color:var(--ok)}
+.note{margin:10px 16px 0;font-size:.8125rem;color:var(--muted)}
+
+/* sekce */
+section.s{padding-block:clamp(36px,6vw,72px)}
+h2{margin:0 0 8px;font-size:clamp(1.75rem,4.4vw,2.5rem);line-height:1.1;font-weight:700;letter-spacing:-.025em;text-wrap:balance}
+.intro{margin:0 0 28px;color:var(--muted);max-width:40em}
+h3{margin:0 0 4px;font-size:1.1875rem;line-height:1.25;font-weight:600;letter-spacing:-.01em}
+p{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{padding:3px 10px;border-radius:999px;background:var(--fill);font-size:.8125rem;color:var(--muted)}
+
+.areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}
+.area{background:var(--card);border-radius:16px;padding:22px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-content:start}
+.tile{width:44px;height:44px;border-radius:10px;display:grid;place-items:center}
+.tile svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.t1{background:#007AFF}.t2{background:#34C759}.t3{background:#FF9500}.t4{background:#AF52DE}
+.area p{color:var(--muted)}
+
+.case{display:grid;grid-template-columns:130px minmax(0,1fr);gap:6px 24px;padding:22px 24px}
+.tag{font-size:.8125rem;font-weight:600;color:var(--blue);padding-top:4px}
+.case p{color:var(--muted);max-width:40em}
+@media (max-width:640px){.case{grid-template-columns:minmax(0,1fr)}.tag{padding-top:0}}
+
+.steps{list-style:none;margin:0;padding:0;counter-reset:st}
+.steps li{counter-increment:st;display:grid;grid-template-columns:32px minmax(0,1fr);gap:16px;padding:18px 24px;position:relative}
+.steps li+li::before{content:"";position:absolute;top:0;left:72px;right:0;height:1px;background:var(--sep)}
+.steps li::after{content:counter(st);position:absolute;left:24px;top:20px;width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:.9375rem;font-weight:600}
+.steps li>div{grid-column:2}
+.steps p{color:var(--muted);max-width:40em}
+
+.about{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:28px 48px;align-items:start}
+@media (max-width:820px){.about{grid-template-columns:minmax(0,1fr)}}
+.about .txt p{margin-bottom:14px;max-width:34em}
+.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 16px;padding:14px 20px;position:relative}
+.kv+.kv::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.kv dt{color:var(--muted);font-size:.9375rem}
+.kv dd{margin:0}
+dl{margin:0}
+@media (max-width:480px){.kv{grid-template-columns:minmax(0,1fr)}}
+
+.contact{padding:28px 24px;display:grid;gap:14px;justify-items:start}
+.mail{font-size:clamp(1.25rem,4.8vw,2rem);font-weight:700;letter-spacing:-.02em;overflow-wrap:anywhere}
+.mail a{color:var(--blue)}
+.contact-note{color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+
+footer{padding-block:20px 48px;font-size:.8125rem;color:var(--muted)}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 24px}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="DigitálníKvalita">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 4.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span>DigitálníKvalita</span>
+    </a>
+    <nav aria-label="Navigace">
+      <a href="#cinnosti" data-i18n="nav_areas">Činnosti</a>
+      <a href="#ukazky" data-i18n="nav_cases">Ukázky</a>
+      <a href="#postup" data-i18n="nav_process">Postup</a>
+      <a href="#o-mne" data-i18n="nav_about">O mně</a>
+      <a href="#kontakt" data-i18n="nav_contact">Kontakt</a>
+      <div class="lang" role="group" aria-label="Jazyk / Language">
+        <button type="button" data-lang="cs" aria-pressed="true">CZ</button>
+        <button type="button" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<main id="top">
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <p class="eyebrow" data-i18n="eyebrow">Digitalizace výroby a kvality</p>
+        <h1 data-i18n="h1">Papír a Excel z výroby pryč.</h1>
+        <p class="lead" data-i18n="lead">Navrhuji a stavím digitální procesy v Microsoft 365: audity, schvalování, reporty a plánování, které se vyplňují z telefonu a vyhodnocují se samy.</p>
+        <p class="sub" data-i18n="sub">Zkušenost z automotive, kde na záznamu, auditu a dohledatelnosti záleží.</p>
+        <div class="cta">
+          <a class="btn" id="cta-mail" href="mailto:kuzela.josef@digitalnikvalita.cz" data-i18n="cta1">Domluvit konzultaci</a>
+          <a class="btn tint" href="#ukazky" data-i18n="cta2">Prohlédnout ukázky</a>
+        </div>
+      </div>
+      <div>
+        <div class="group" id="demo" aria-live="polite"></div>
+        <p class="note" id="demo-note"></p>
+      </div>
+    </div>
+  </div>
+
+  <section class="s" id="cinnosti">
+    <div class="wrap">
+      <h2 data-i18n="areas_h">Co automatizuji</h2>
+      <p class="intro" data-i18n="areas_intro">Typicky činnosti, které dnes běží na papíře, v Excelu a v e-mailech, a nikdo přesně neví, v jakém jsou stavu.</p>
+      <div class="areas">
+        <div class="area">
+          <div class="tile t1" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 4h6v3H9z"/><path d="M8 5.5H6.5A1.5 1.5 0 0 0 5 7v12a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19V7a1.5 1.5 0 0 0-1.5-1.5H16"/><path d="M9 13.5l2 2 4-4.5"/></svg></div>
+          <div>
+            <h3 data-i18n="a1_h">Audity a kontroly</h3>
+            <p data-i18n="a1_p">5S, procesní a interní audity podle IATF 16949 a VDA 6.3. Formulář v telefonu, automatické skóre, neshoda se sama změní na úkol s termínem.</p>
+            <div class="chips"><span class="chip">Forms</span><span class="chip">Power Automate</span><span class="chip">SharePoint</span><span class="chip">Planner</span></div>
+          </div>
+        </div>
+        <div class="area">
+          <div class="tile t2" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.4l2.6 2.6 4.8-5.4"/></svg></div>
+          <div>
+            <h3 data-i18n="a2_h">Schvalování a žádanky</h3>
+            <p data-i18n="a2_p">Dovolená, přepracování, opravné listy, změnová řízení. Každý krok má vlastníka, termín a záznam o tom, kdo co schválil.</p>
+            <div class="chips"><span class="chip">Forms</span><span class="chip">Power Automate</span><span class="chip">Outlook</span><span class="chip">Teams</span></div>
+          </div>
+        </div>
+        <div class="area">
+          <div class="tile t3" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 19.5v-8M12 19.5V5M18.5 19.5v-5"/></svg></div>
+          <div>
+            <h3 data-i18n="a3_h">Reporty a přehledy</h3>
+            <p data-i18n="a3_p">Denní přehled prostojů, úkoly po termínu, stav neshod. Přijdou ráno e-mailem a nikdo je nesestavuje ručně.</p>
+            <div class="chips"><span class="chip">Power Automate</span><span class="chip">Excel</span><span class="chip">Outlook</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="s" id="ukazky">
+    <div class="wrap">
+      <h2 data-i18n="cases_h">Ukázky</h2>
+      <p class="intro" data-i18n="cases_intro">Scénáře stavím na fiktivních datech. Konkrétní řešení vždy přizpůsobím vašemu procesu.</p>
+      <div class="group">
+        <article class="item case">
+          <div class="tag" data-i18n="c1_tag">Audity</div>
+          <div>
+            <h3 data-i18n="c1_h">5S audit z telefonu</h3>
+            <p data-i18n="c1_p">Auditor vyplní formulář v Microsoft Forms. Power Automate uloží výsledek do SharePointu, spočítá skóre a každé neshodě založí úkol v Plannerum s odpovědnou osobou a termínem. Na stejné logice stojí procesní a interní audity.</p>
+            <div class="chips"><span class="chip">Forms</span><span class="chip">Power Automate</span><span class="chip">SharePoint</span><span class="chip">Planner</span></div>
+          </div>
+        </article>
+        <article class="item case">
+          <div class="tag" data-i18n="c2_tag">Schvalování</div>
+          <div>
+            <h3 data-i18n="c2_h">Žádanka na dovolenou a absenci</h3>
+            <p data-i18n="c2_p">Zaměstnanec odešle žádanku z formuláře. Nadřízený ji schválí v e-mailu nebo v Teams, schválení se zapíše do evidence v Excelu a žadatel dostane potvrzení.</p>
+            <div class="chips"><span class="chip">Forms</span><span class="chip">Power Automate</span><span class="chip">Excel Online</span><span class="chip">Outlook</span></div>
+          </div>
+        </article>
+        <article class="item case">
+          <div class="tag" data-i18n="c3_tag">Reporting</div>
+          <div>
+            <h3 data-i18n="c3_h">Denní přehled prostojů</h3>
+            <p data-i18n="c3_p">Z reportů ze směny se každé ráno složí e-mail pro vedoucí: prostoje linek za předchozí den a otevřené úkoly s blížícím se termínem.</p>
+            <div class="chips"><span class="chip">Power Automate</span><span class="chip">SharePoint</span><span class="chip">Planner</span><span class="chip">Outlook</span></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="s" id="postup">
+    <div class="wrap">
+      <h2 data-i18n="proc_h">Jak spolupráce probíhá</h2>
+      <p class="intro" data-i18n="proc_intro">Čtyři kroky, na konci každého máte něco, co můžete použít nebo odmítnout.</p>
+      <ol class="steps group">
+        <li><div><h3 data-i18n="p1_h">Úvodní konzultace</h3><p data-i18n="p1_p">Projdeme proces tak, jak běží dnes, včetně papírů, excelů a e-mailů. Řeknu vám otevřeně, co se vyplatí automatizovat a co ne.</p></div></li>
+        <li><div><h3 data-i18n="p2_h">Návrh a prototyp</h3><p data-i18n="p2_p">Dostanete funkční prototyp, který si vyzkoušíte na reálném případu, dřív než se rozhodnete pro nasazení.</p></div></li>
+        <li><div><h3 data-i18n="p3_h">Nasazení ve vašem Microsoft 365</h3><p data-i18n="p3_p">Řešení běží ve vašem tenantu, s vaším IT a podle vašich pravidel přístupů. Kde to jde, vystačíte s licencemi, které už máte.</p></div></li>
+        <li><div><h3 data-i18n="p4_h">Předání a dokumentace</h3><p data-i18n="p4_p">Popis toků, návod pro uživatele a školení. Řešení pak zvládne udržovat váš tým.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="s" id="o-mne">
+    <div class="wrap">
+      <div class="about">
+        <div class="txt">
+          <h2 data-i18n="about_h">Kdo za tím stojí</h2>
+          <p data-i18n="about_p1">Ing. Josef Kužela. Dvanáct let jsem pracoval v automobilovém průmyslu na procesních, projektových a vedoucích pozicích, dnes vedu technologický tým ve výrobním podniku.</p>
+          <p data-i18n="about_p2">Znám požadavky IATF 16949 a VDA 6.3 z praxe a vím, kde se ve výrobě ztrácí čas. Automatizace stavím v Microsoft 365, které firmy už mají zaplacené.</p>
+        </div>
+        <dl class="group">
+          <div class="kv"><dt data-i18n="dl1_t">Kvalita</dt><dd>IATF 16949, VDA 6.3</dd></div>
+          <div class="kv"><dt data-i18n="dl2_t">Automatizace</dt><dd>Power Automate, Forms, SharePoint, Planner, Excel, Outlook</dd></div>
+          <div class="kv"><dt data-i18n="dl3_t">Odvětví</dt><dd data-i18n="dl3_d">Automotive, kovovýroba</dd></div>
+          <div class="kv"><dt data-i18n="dl4_t">Jazyky</dt><dd data-i18n="dl4_d">Čeština, angličtina</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="s" id="kontakt">
+    <div class="wrap">
+      <div class="group contact">
+        <h2 data-i18n="ct_h">Napište, co dnes děláte ručně</h2>
+        <p class="contact-note" data-i18n="ct_intro">Stačí pár vět. Ozvu se s návrhem, jak by to šlo digitalizovat, a řeknu vám, jestli se to vyplatí.</p>
+        <div class="mail"><a id="mail" href="mailto:kuzela.josef@digitalnikvalita.cz">kuzela.josef@digitalnikvalita.cz</a></div>
+        <div class="actions">
+          <a class="btn" id="cta-mail2" href="mailto:kuzela.josef@digitalnikvalita.cz" data-i18n="cta1">Domluvit konzultaci</a>
+          <button class="btn tint" type="button" id="copy" data-i18n="copy">Kopírovat</button>
+        </div>
+        <p class="contact-note" data-i18n="ct_note">Odpovídám česky i anglicky.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Josef Kužela</span>
+    <!-- TODO po registraci živnosti: doplnit IČO a sídlo/kontaktní adresu -->
+    <span data-i18n="foot">Web nepoužívá cookies ani služby třetích stran.</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var lang = 'cs';
+  var CS = { copy: 'Kopírovat', copied: 'Zkopírováno', subject: 'Dotaz na digitalizaci procesu', title: 'DigitálníKvalita | Digitalizace výroby a kvality' };
+  var T = {
+    en: {
+      copy: 'Copy', copied: 'Copied', subject: 'Process digitalization inquiry',
+      title: 'DigitálníKvalita | Digitalization of manufacturing and quality',
+      nav_areas: 'What I automate', nav_cases: 'Examples', nav_process: 'Process', nav_about: 'About', nav_contact: 'Contact',
+      eyebrow: 'Digitalization of manufacturing and quality',
+      h1: 'Paper and spreadsheets off the shop floor.',
+      lead: 'I design and build digital processes in Microsoft 365: audits, approvals, reports and planning that are filled in from a phone and evaluated automatically.',
+      sub: 'Experience from the automotive industry, where records, audits and traceability matter.',
+      cta1: 'Book a consultation', cta2: 'See examples',
+      areas_h: 'What I automate',
+      areas_intro: 'Typically work that runs on paper, in spreadsheets and in e-mails today, where nobody knows exactly what state it is in.',
+      a1_h: 'Audits and inspections',
+      a1_p: '5S, process and internal audits per IATF 16949 and VDA 6.3. A form on the phone, automatic scoring, and every finding turns itself into a task with a due date.',
+      a2_h: 'Approvals and requests',
+      a2_p: 'Leave requests, rework, corrective sheets, change control. Every step has an owner, a due date and a record of who approved what.',
+      a3_h: 'Reports and overviews',
+      a3_p: 'Daily downtime summary, overdue tasks, status of findings. They arrive by e-mail in the morning and nobody compiles them by hand.',
+      cases_h: 'Examples',
+      cases_intro: 'Scenarios are built on fictional data. I always adapt the real solution to your process.',
+      c1_tag: 'Audits', c1_h: '5S audit from a phone',
+      c1_p: 'The auditor fills in a Microsoft Forms form. Power Automate stores the result in SharePoint, calculates the score and creates a Planner task for every finding, with an owner and a due date. Process and internal audits run on the same logic.',
+      c2_tag: 'Approvals', c2_h: 'Leave and absence request',
+      c2_p: 'An employee submits the request from a form. The manager approves it by e-mail or in Teams, the approval is written to an Excel register and the requester gets a confirmation.',
+      c3_tag: 'Reporting', c3_h: 'Daily downtime digest',
+      c3_p: 'Shift reports are compiled into a morning e-mail for managers: line downtime from the previous day and open tasks with approaching deadlines.',
+      proc_h: 'How we work together',
+      proc_intro: 'Four steps. At the end of each one you have something you can use or turn down.',
+      p1_h: 'Initial consultation',
+      p1_p: 'We walk through the process as it runs today, including paper, spreadsheets and e-mails. I will tell you openly what is worth automating and what is not.',
+      p2_h: 'Design and prototype',
+      p2_p: 'You get a working prototype to try on a real case before you decide on deployment.',
+      p3_h: 'Deployment in your Microsoft 365',
+      p3_p: 'The solution runs in your tenant, with your IT and under your access rules. Where possible, the licenses you already have are enough.',
+      p4_h: 'Handover and documentation',
+      p4_p: 'Flow descriptions, user guides and training. Your team can then maintain the solution.',
+      about_h: 'Who is behind it',
+      about_p1: 'Ing. Josef Kužela. I spent twelve years in the automotive industry in process, project and leadership roles, and today I lead a technology team at a manufacturer.',
+      about_p2: 'I know the IATF 16949 and VDA 6.3 requirements from practice, and I know where time is lost on the shop floor. I build automations in the Microsoft 365 that companies already pay for.',
+      dl1_t: 'Quality', dl2_t: 'Automation', dl3_t: 'Industries', dl3_d: 'Automotive, metalworking', dl4_t: 'Languages', dl4_d: 'Czech, English',
+      ct_h: 'Tell me what you still do by hand',
+      ct_intro: 'A few sentences are enough. I will come back with a proposal for how it could be digitalized and tell you whether it pays off.',
+      ct_note: 'I reply in Czech and English.',
+      foot: 'This site uses no cookies and no third-party services.'
+    }
+  };
+  var D = {
+    cs: {
+      score: 'Skóre auditu', plan: 'Akční plán (založeno automaticky)', ok: 'V pořádku', nok: 'Neshoda',
+      none: 'Žádná neshoda, úkol se nezakládá.', due: 'termín', owner: 'odpovědný: vedoucí směny',
+      note: 'Ukázka 5S auditu s fiktivními daty. Zkuste přepnout přepínač. Za tím stojí Forms, Power Automate, SharePoint a Planner.',
+      items: ['Třídění: na pracovišti jen potřebné nástroje', 'Systemizace: místa pro nářadí jsou označena', 'Čistota: podlaha a stroj bez olejových skvrn', 'Standardizace: vizuální standardy jsou aktuální', 'Sebedisciplína: neshody z minulého auditu jsou uzavřeny'],
+      locale: 'cs-CZ'
+    },
+    en: {
+      score: 'Audit score', plan: 'Action plan (created automatically)', ok: 'Compliant', nok: 'Finding',
+      none: 'No findings, no task is created.', due: 'due', owner: 'owner: shift leader',
+      note: '5S audit demo with fictional data. Try flipping a switch. Behind it: Forms, Power Automate, SharePoint and Planner.',
+      items: ['Sort: only needed tools at the workstation', 'Set in order: tool locations are marked', 'Shine: floor and machine free of oil stains', 'Standardize: visual standards are current', 'Sustain: findings from the last audit are closed'],
+      locale: 'en-GB'
+    }
+  };
+  var state = [1, 1, 0, 1, 1];
+
+  var nodes = [].slice.call(document.querySelectorAll('[data-i18n]'));
+  nodes.forEach(function (n) { n.dataset.cs = n.textContent; });
+  var demo = document.getElementById('demo');
+  var demoNote = document.getElementById('demo-note');
+
+  function t(key) { return lang === 'cs' ? CS[key] : T.en[key]; }
+
+  function renderDemo(focusIdx) {
+    var d = D[lang];
+    var ok = state.reduce(function (a, b) { return a + b; }, 0);
+    var pct = Math.round(ok / state.length * 100);
+    var due = new Date(); due.setDate(due.getDate() + 7);
+    var dueTxt = due.toLocaleDateString(d.locale);
+    var h = '';
+    d.items.forEach(function (label, i) {
+      var on = state[i] === 1;
+      h += '<div class="row"><div><span class="lbl">' + label + '</span><span class="state ' + (on ? 'ok' : 'nok') + '">' + (on ? d.ok : d.nok) + '</span></div>' +
+        '<button type="button" class="switch" role="switch" aria-checked="' + on + '" aria-label="' + label + '" data-i="' + i + '"></button></div>';
+    });
+    h += '<div class="score"><div class="score-line"><span class="score-lbl">' + d.score + '</span><span class="score-num">' + pct + ' %</span></div>' +
+      '<div class="meter" aria-hidden="true"><span style="width:' + pct + '%"></span></div></div>';
+    h += '<div class="plan"><h3>' + d.plan + '</h3>';
+    var nok = [];
+    state.forEach(function (s, i) { if (!s) nok.push(i); });
+    if (nok.length === 0) {
+      h += '<span class="none">' + d.none + '</span>';
+    } else {
+      h += '<ul>';
+      nok.forEach(function (i) {
+        h += '<li><span class="dot"></span><span>' + d.items[i].split(':')[0] + ' · ' + d.due + ' ' + dueTxt + ' · ' + d.owner + '</span></li>';
+      });
+      h += '</ul>';
+    }
+    h += '</div>';
+    demo.innerHTML = h;
+    demoNote.textContent = d.note;
+    if (focusIdx !== undefined) {
+      var b = demo.querySelector('button[data-i="' + focusIdx + '"]');
+      if (b) b.focus();
+    }
+  }
+
+  demo.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-i]');
+    if (!b) return;
+    var i = +b.dataset.i;
+    state[i] = state[i] ? 0 : 1;
+    renderDemo(i);
+  });
+
+  function applyLang(l) {
+    lang = l;
+    document.documentElement.lang = l;
+    nodes.forEach(function (n) {
+      n.textContent = l === 'cs' ? n.dataset.cs : T.en[n.dataset.i18n];
+    });
+    [].slice.call(document.querySelectorAll('[data-lang]')).forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.lang === l));
+    });
+    document.title = t('title');
+    var href = 'mailto:kuzela.josef@digitalnikvalita.cz?subject=' + encodeURIComponent(t('subject'));
+    document.getElementById('cta-mail').href = href;
+    document.getElementById('cta-mail2').href = href;
+    renderDemo();
+  }
+
+  [].slice.call(document.querySelectorAll('[data-lang]')).forEach(function (b) {
+    b.addEventListener('click', function () { applyLang(b.dataset.lang); });
+  });
+
+  var copyBtn = document.getElementById('copy');
+  copyBtn.addEventListener('click', function () {
+    var mailEl = document.getElementById('mail');
+    var txt = mailEl.textContent.trim();
+    function done() {
+      copyBtn.textContent = t('copied');
+      setTimeout(function () { copyBtn.textContent = t('copy'); }, 1800);
+    }
+    function fallback() {
+      var r = document.createRange();
+      r.selectNodeContents(mailEl);
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, fallback);
+    } else {
+      fallback();
+    }
+  });
+
+  renderDemo();
+})();
+</script>
+<noscript><div class="wrap"><p class="note">Pro interaktivní ukázku a přepínač jazyků zapněte JavaScript.</p></div></noscript>
+</body>
+</html>
