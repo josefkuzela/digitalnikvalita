@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ukázka: žádanka na dovolenou | DigitálníKvalita</title>
+<meta name="description" content="Interaktivní ukázka schvalování žádanky na dovolenou a absenci. Fiktivní data.">
+<meta name="theme-color" content="#F2F2F7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230071E3'/%3E%3Cpath d='M8 17l5 5 11-12' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+/* Světlý design podle zásad iOS: velký titulek, seskupené seznamy na šedém podkladu,
+   přepínače, jemné dělicí čáry. Bez externích fontů a skriptů. */
+:root{
+  --bg:#F2F2F7; --card:#FFFFFF; --ink:#1C1C1E; --muted:#6C6C70; --sep:#E5E5EA; --fill:#E9E9EE;
+  --blue:#0071E3; --link:#0066CC; --green:#34C759; --ok:#1E7A3A; --nok:#D70015;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:72px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:1.0625rem;line-height:1.47;-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:3px solid rgba(0,113,227,.45);outline-offset:2px}
+.wrap{max-width:1040px;margin-inline:auto;padding-inline:20px}
+
+/* navigační lišta */
+.bar{position:sticky;top:0;z-index:10;background:rgba(242,242,247,.82);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--sep)}
+.bar .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 20px;min-height:56px;padding-block:8px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-weight:600;font-size:1.0625rem;letter-spacing:-.01em}
+.brand:hover{text-decoration:none}
+.mark{width:28px;height:28px;border-radius:7px;background:var(--blue);display:grid;place-items:center}
+.mark svg{width:16px;height:16px}
+nav{display:flex;flex-wrap:wrap;align-items:center;gap:2px 18px;font-size:.9375rem}
+nav a{color:var(--muted)}
+nav a:hover{color:var(--ink);text-decoration:none}
+.lang{display:flex;background:var(--fill);border-radius:8px;padding:2px}
+.lang button{font:inherit;font-size:.8125rem;font-weight:500;min-height:28px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:var(--ink);cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.14),0 0 0 .5px rgba(0,0,0,.04)}
+@media (max-width:640px){nav a{display:none}}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:40px 56px;align-items:center;padding-block:clamp(36px,7vw,88px) clamp(40px,7vw,80px)}
+@media (max-width:820px){.hero{grid-template-columns:minmax(0,1fr)}}
+.eyebrow{margin:0 0 12px;font-size:.9375rem;font-weight:600;color:var(--blue)}
+h1{margin:0 0 18px;font-size:clamp(2.5rem,7.4vw,4rem);line-height:1.05;font-weight:700;letter-spacing:-.03em;text-wrap:balance}
+.lead{margin:0 0 10px;font-size:1.25rem;line-height:1.4;max-width:30em}
+.sub{margin:0 0 28px;color:var(--muted);max-width:30em}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border:0;border-radius:999px;background:var(--blue);color:#fff;font:inherit;font-size:1.0625rem;font-weight:600;cursor:pointer}
+.btn:hover{text-decoration:none;filter:brightness(1.06)}
+.btn.tint{background:rgba(0,113,227,.1);color:var(--link)}
+
+/* seskupený seznam (iOS grouped list) */
+.group{background:var(--card);border-radius:16px;overflow:hidden;min-width:0}
+.group-title{margin:0 16px 8px;font-size:.8125rem;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+.item{padding:16px 20px;position:relative}
+.item+.item::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+
+/* demo */
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;padding:12px 16px 12px 20px;position:relative}
+.row+.row::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.lbl{font-size:1rem;line-height:1.35}
+.state{display:block;margin-top:2px;font-size:.8125rem;font-weight:500}
+.state.ok{color:var(--ok)}
+.state.nok{color:var(--nok)}
+.switch{position:relative;width:51px;height:31px;padding:0;border:0;border-radius:999px;background:#D1D1D6;cursor:pointer;transition:background .2s;flex:none}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .2s}
+.switch[aria-checked="true"]{background:var(--green)}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+.score{padding:16px 20px 18px;display:grid;gap:10px;position:relative}
+.score::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.score-line{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.score-lbl{font-size:.9375rem;color:var(--muted)}
+.score-num{font-size:2.25rem;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.meter{height:8px;border-radius:999px;background:var(--fill);overflow:hidden}
+.meter span{display:block;height:100%;border-radius:999px;background:var(--green);transition:width .25s}
+.plan{padding:14px 20px 16px;position:relative;font-size:.9375rem}
+.plan::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.plan h3{margin:0 0 8px;font-size:.8125rem;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+.plan ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.plan li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--nok);margin-top:7px}
+.plan .none{color:var(--ok)}
+.note{margin:10px 16px 0;font-size:.8125rem;color:var(--muted)}
+
+/* sekce */
+section.s{padding-block:clamp(36px,6vw,72px)}
+h2{margin:0 0 8px;font-size:clamp(1.75rem,4.4vw,2.5rem);line-height:1.1;font-weight:700;letter-spacing:-.025em;text-wrap:balance}
+.intro{margin:0 0 28px;color:var(--muted);max-width:40em}
+h3{margin:0 0 4px;font-size:1.1875rem;line-height:1.25;font-weight:600;letter-spacing:-.01em}
+p{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{padding:3px 10px;border-radius:999px;background:var(--fill);font-size:.8125rem;color:var(--muted)}
+
+.areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}
+.area{background:var(--card);border-radius:16px;padding:22px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-content:start}
+.tile{width:44px;height:44px;border-radius:10px;display:grid;place-items:center}
+.tile svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.t1{background:#007AFF}.t2{background:#34C759}.t3{background:#FF9500}.t4{background:#AF52DE}
+.area p{color:var(--muted)}
+
+.case{display:grid;grid-template-columns:130px minmax(0,1fr);gap:6px 24px;padding:22px 24px}
+.tag{font-size:.8125rem;font-weight:600;color:var(--blue);padding-top:4px}
+.case p{color:var(--muted);max-width:40em}
+@media (max-width:640px){.case{grid-template-columns:minmax(0,1fr)}.tag{padding-top:0}}
+
+.steps{list-style:none;margin:0;padding:0;counter-reset:st}
+.steps li{counter-increment:st;display:grid;grid-template-columns:32px minmax(0,1fr);gap:16px;padding:18px 24px;position:relative}
+.steps li+li::before{content:"";position:absolute;top:0;left:72px;right:0;height:1px;background:var(--sep)}
+.steps li::after{content:counter(st);position:absolute;left:24px;top:20px;width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:.9375rem;font-weight:600}
+.steps li>div{grid-column:2}
+.steps p{color:var(--muted);max-width:40em}
+
+.about{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:28px 48px;align-items:start}
+@media (max-width:820px){.about{grid-template-columns:minmax(0,1fr)}}
+.about .txt p{margin-bottom:14px;max-width:34em}
+.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:4px 16px;padding:14px 20px;position:relative}
+.kv+.kv::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.kv dt{color:var(--muted);font-size:.9375rem}
+.kv dd{margin:0}
+dl{margin:0}
+@media (max-width:480px){.kv{grid-template-columns:minmax(0,1fr)}}
+
+.contact{padding:28px 24px;display:grid;gap:14px;justify-items:start}
+.mail{font-size:clamp(1.25rem,4.8vw,2rem);font-weight:700;letter-spacing:-.02em;overflow-wrap:anywhere}
+.mail a{color:var(--blue)}
+.contact-note{color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+
+footer{padding-block:20px 48px;font-size:.8125rem;color:var(--muted)}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 24px}
+
+/* demo žádanky */
+.back{font-size:.9375rem}
+.steps3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 20px;padding:0;list-style:none}
+.steps3 li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--fill);color:var(--muted);font-size:.875rem;font-weight:500}
+.steps3 li b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#fff;color:var(--muted);font-size:.8125rem;flex:none}
+.steps3 li.on{background:var(--blue);color:#fff}
+.steps3 li.on b{color:var(--blue)}
+.steps3 li.done{background:rgba(52,199,89,.16);color:var(--ok)}
+.steps3 li.done b{background:var(--green);color:#fff}
+@media (max-width:560px){.steps3 li{flex-direction:column;gap:4px;font-size:.75rem;padding:8px 4px;text-align:center}}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+.field{display:grid;grid-template-columns:110px minmax(0,1fr);align-items:center;gap:8px 12px;padding:10px 20px;position:relative}
+.field+.field::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.field label{font-size:1rem}
+.field select,.field input,.field textarea{font:inherit;font-size:1rem;width:100%;min-height:40px;padding:6px 10px;border:1px solid var(--sep);border-radius:10px;background:var(--bg);color:var(--ink)}
+.field textarea{resize:vertical;min-height:64px}
+.info{display:flex;justify-content:space-between;gap:12px;padding:14px 20px;position:relative;font-size:.9375rem;color:var(--muted)}
+.info::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.info b{color:var(--ink);font-variant-numeric:tabular-nums}
+.warn{color:var(--nok)}
+.pad{padding:16px 20px}
+.btn[disabled]{opacity:.45;cursor:default;filter:none}
+.btn.red{background:rgba(215,0,21,.1);color:var(--nok)}
+.btn.green{background:var(--green);color:#fff}
+.mail-card{padding:0}
+.mail-h{padding:14px 20px;font-size:.875rem;color:var(--muted);display:grid;gap:2px}
+.mail-h b{color:var(--ink);font-weight:600}
+.mail-b{padding:6px 20px 16px;position:relative}
+.mail-b::before{content:"";position:absolute;top:0;left:20px;right:0;height:1px;background:var(--sep)}
+.mail-b p{margin:10px 0}
+.tbl{width:100%;border-collapse:collapse;font-size:.875rem}
+.tbl th{font-weight:600;text-align:left;padding:10px 12px;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--sep)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--sep);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tr.new td{background:rgba(0,113,227,.07)}
+.scroll{overflow-x:auto}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.75rem;font-weight:600}
+.pill.ok{background:rgba(52,199,89,.16);color:var(--ok)}
+.pill.no{background:rgba(215,0,21,.1);color:var(--nok)}
+.pill.wait{background:var(--fill);color:var(--muted)}
+.hint{margin:12px 16px 0;font-size:.8125rem;color:var(--muted)}
+.empty{padding:28px 20px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="bar"><div class="wrap">
+  <a class="brand" href="./" aria-label="DigitálníKvalita"><span class="mark" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 4.5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>DigitálníKvalita</span></a>
+  <nav aria-label="Navigace">
+    <a class="back" href="./#ukazky" id="back"></a>
+    <div class="lang" role="group" aria-label="Jazyk / Language">
+      <button type="button" data-lang="cs" aria-pressed="true">CZ</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </nav>
+</div></div>
+
+<main><div class="wrap">
+  <section class="s" style="padding-top:clamp(28px,5vw,56px)">
+    <p class="eyebrow" id="eyebrow"></p>
+    <h1 id="h1" style="font-size:clamp(2rem,5.6vw,3.25rem)"></h1>
+    <p class="intro" id="lead" style="max-width:38em"></p>
+    <ol class="steps3" id="steps"></ol>
+    <div class="layout">
+      <div id="left"></div>
+      <div id="right"></div>
+    </div>
+    <p class="hint" id="note"></p>
+  </section>
+</div></main>
+
+<footer><div class="wrap"><span>© 2026 Josef Kužela</span><span id="foot"></span></div></footer>
+
+<script>
+(function () {
+  var lang = 'cs';
+  var L = {
+    cs: {
+      back: '‹ Zpět na ukázky', eyebrow: 'Ukázka · Schvalování', h1: 'Žádanka na dovolenou a absenci',
+      lead: 'Projděte si celý tok: žadatel vyplní formulář, nadřízený rozhodne z e-mailu a výsledek se zapíše do evidence. Všechna data jsou fiktivní.',
+      s1: 'Žadatel', s2: 'Nadřízený', s3: 'Evidence',
+      type: 'Typ', from: 'Od', to: 'Do', comment: 'Poznámka', types: ['Dovolená', 'Lékař', 'Neplacené volno'], typesAcc: ['dovolenou', 'lékaře', 'neplacené volno'],
+      days: 'Pracovních dnů', left: 'Zbývá dovolené po schválení (dny)', unit: '', bad: 'Datum „Do“ je před datem „Od“.', over: 'Žádost překračuje zbývající nárok.',
+      send: 'Odeslat žádanku', c1: 'Dovolená k čerpání', ph: 'např. rodinná dovolená',
+      mailFrom: 'Od', mailTo: 'Komu', mailSubj: 'Předmět', fromName: 'Žádanky <zadanky@firma.example>', toName: 'Vedoucí směny <vedouci@firma.example>',
+      subj: function (r) { return 'Ke schválení: ' + r.type + ', ' + r.fromTxt + ' – ' + r.toTxt; },
+      body: function (r) { return 'Jana Nováková žádá o <b>' + r.typeAcc + '</b> v termínu <b>' + r.fromTxt + ' – ' + r.toTxt + '</b> (' + r.days + ' pracovních dnů).'; },
+      approve: 'Schválit', reject: 'Zamítnout', wait: 'Čeká na rozhodnutí nadřízeného.',
+      regTitle: 'Evidence žádanek (Excel Online)', th: ['Jméno', 'Typ', 'Termín', 'Dnů', 'Stav'],
+      st: { wait: 'Čeká', ok: 'Schváleno', no: 'Zamítnuto' },
+      confirm: 'Potvrzení žadateli', confOk: function (r) { return 'Vaše žádost na ' + r.fromTxt + ' – ' + r.toTxt + ' byla schválena. Zbývající dovolená (dny): ' + r.left + '.'; },
+      confNo: function (r) { return 'Vaše žádost na ' + r.fromTxt + ' – ' + r.toTxt + ' byla zamítnuta. Domluvte jiný termín s nadřízeným.'; },
+      again: 'Zkusit znovu', empty: 'Zatím žádná žádost. Vyplňte formulář vlevo.',
+      note: 'Zjednodušená ukázka: víkendy se nepočítají, státní svátky ne. Za tím stojí Forms, Power Automate, Outlook (schvalování) a Excel Online.',
+      foot: 'Web nepoužívá cookies ani služby třetích stran.', who: 'Jana Nováková', locale: 'cs-CZ', title: 'Ukázka: žádanka na dovolenou | DigitálníKvalita'
+    },
+    en: {
+      back: '‹ Back to examples', eyebrow: 'Example · Approvals', h1: 'Leave and absence request',
+      lead: 'Walk through the whole flow: the employee fills in a form, the manager decides from an e-mail and the result is written to a register. All data is fictional.',
+      s1: 'Requester', s2: 'Manager', s3: 'Register',
+      type: 'Type', from: 'From', to: 'To', comment: 'Note', types: ['Annual leave', 'Doctor visit', 'Unpaid leave'], typesAcc: ['annual leave', 'a doctor visit', 'unpaid leave'],
+      days: 'Working days', left: 'Leave left after approval (days)', unit: '', bad: '"To" date is before "From" date.', over: 'The request exceeds the remaining entitlement.',
+      send: 'Submit request', c1: 'Leave entitlement', ph: 'e.g. family holiday',
+      mailFrom: 'From', mailTo: 'To', mailSubj: 'Subject', fromName: 'Requests <requests@company.example>', toName: 'Shift leader <leader@company.example>',
+      subj: function (r) { return 'For approval: ' + r.type + ', ' + r.fromTxt + ' – ' + r.toTxt; },
+      body: function (r) { return 'Jana Nováková requests <b>' + r.typeAcc + '</b> for <b>' + r.fromTxt + ' – ' + r.toTxt + '</b> (' + r.days + ' working days).'; },
+      approve: 'Approve', reject: 'Reject', wait: 'Waiting for the manager to decide.',
+      regTitle: 'Request register (Excel Online)', th: ['Name', 'Type', 'Dates', 'Days', 'Status'],
+      st: { wait: 'Pending', ok: 'Approved', no: 'Rejected' },
+      confirm: 'Confirmation to the requester', confOk: function (r) { return 'Your request for ' + r.fromTxt + ' – ' + r.toTxt + ' was approved. Remaining leave (days): ' + r.left + '.'; },
+      confNo: function (r) { return 'Your request for ' + r.fromTxt + ' – ' + r.toTxt + ' was rejected. Please agree another date with your manager.'; },
+      again: 'Try again', empty: 'No request yet. Fill in the form on the left.',
+      note: 'Simplified demo: weekends are excluded, public holidays are not. Behind it: Forms, Power Automate, Outlook (approval) and Excel Online.',
+      foot: 'This site uses no cookies and no third-party services.', who: 'Jana Nováková', locale: 'en-GB', title: 'Example: leave request | DigitálníKvalita'
+    }
+  };
+  var ENT = 25, USED = 8;
+  var REG = [
+    { name: 'Petr Dvořák', t: 0, from: '2026-09-14', to: '2026-09-18', days: 5, st: 'ok' },
+    { name: 'Marie Svobodová', t: 1, from: '2026-10-05', to: '2026-10-05', days: 1, st: 'ok' }
+  ];
+  function iso(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function nextMonday() { var d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7)); return d; }
+  var m = nextMonday(), w = new Date(m); w.setDate(w.getDate() + 2);
+  var st = { step: 1, type: 0, from: iso(m), to: iso(w), note: '', decision: null };
+
+  function parse(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2], 12); }
+  function fmt(s) { return parse(s).toLocaleDateString(L[lang].locale); }
+  function workdays(a, b) {
+    var x = parse(a), y = parse(b), n = 0;
+    if (isNaN(x) || isNaN(y) || y < x) return 0;
+    for (var d = new Date(x); d <= y; d.setDate(d.getDate() + 1)) { var g = d.getDay(); if (g !== 0 && g !== 6) n++; }
+    return n;
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function req() {
+    var d = L[lang];
+    return { type: d.types[st.type], typeAcc: d.typesAcc[st.type], fromTxt: fmt(st.from), toTxt: fmt(st.to), days: workdays(st.from, st.to), left: ENT - USED - (st.type === 0 ? workdays(st.from, st.to) : 0) };
+  }
+
+  function stepsHtml() {
+    var d = L[lang], n = [d.s1, d.s2, d.s3], h = '';
+    n.forEach(function (x, i) {
+      var cls = st.step === i + 1 ? 'on' : (st.step > i + 1 ? 'done' : '');
+      h += '<li class="' + cls + '"><b>' + (st.step > i + 1 ? '✓' : i + 1) + '</b><span>' + x + '</span></li>';
+    });
+    return h;
+  }
+
+  function leftHtml() {
+    var d = L[lang], r = req();
+    var bad = workdays(st.from, st.to) === 0;
+    var over = st.type === 0 && r.left < 0;
+    var dis = st.step !== 1;
+    var h = '<div class="group">';
+    h += '<div class="field"><label for="f-type">' + d.type + '</label><select id="f-type"' + (dis ? ' disabled' : '') + '>';
+    d.types.forEach(function (t, i) { h += '<option value="' + i + '"' + (i === st.type ? ' selected' : '') + '>' + t + '</option>'; });
+    h += '</select></div>';
+    h += '<div class="field"><label for="f-from">' + d.from + '</label><input id="f-from" type="date" value="' + st.from + '"' + (dis ? ' disabled' : '') + '></div>';
+    h += '<div class="field"><label for="f-to">' + d.to + '</label><input id="f-to" type="date" value="' + st.to + '"' + (dis ? ' disabled' : '') + '></div>';
+    h += '<div class="field"><label for="f-note">' + d.comment + '</label><textarea id="f-note" placeholder="' + esc(d.ph) + '"' + (dis ? ' disabled' : '') + '>' + esc(st.note) + '</textarea></div>';
+    h += '<div class="info"><span>' + d.days + '</span><b>' + (bad ? '–' : r.days) + '</b></div>';
+    h += '<div class="info"><span>' + d.left + '</span><b class="' + (over ? 'warn' : '') + '">' + (st.type === 0 ? r.left : (ENT - USED)) + '</b></div>';
+    if (bad) h += '<div class="info warn">' + d.bad + '</div>';
+    else if (over) h += '<div class="info warn">' + d.over + '</div>';
+    h += '<div class="pad">';
+    if (st.step === 1) h += '<button type="button" class="btn" id="send"' + (bad || over ? ' disabled' : '') + '>' + d.send + '</button>';
+    else h += '<button type="button" class="btn tint" id="again">' + d.again + '</button>';
+    h += '</div></div>';
+    return h;
+  }
+
+  function mailHtml() {
+    var d = L[lang], r = req();
+    var h = '<div class="group mail-card"><div class="mail-h">' +
+      '<span>' + d.mailFrom + ': <b>' + esc(d.fromName) + '</b></span><span>' + d.mailTo + ': <b>' + esc(d.toName) + '</b></span><span>' + d.mailSubj + ': <b>' + esc(d.subj(r)) + '</b></span></div>' +
+      '<div class="mail-b"><p>' + d.body(r) + '</p>';
+    if (st.note) h += '<p style="color:var(--muted)">„' + esc(st.note) + '“</p>';
+    if (st.step === 2) h += '<div class="actions"><button type="button" class="btn green" id="ok">' + d.approve + '</button><button type="button" class="btn red" id="no">' + d.reject + '</button></div>';
+    else h += '<p><span class="pill ' + (st.decision === 'ok' ? 'ok' : 'no') + '">' + d.st[st.decision] + '</span></p>';
+    h += '</div></div>';
+    return h;
+  }
+
+  function regHtml() {
+    var d = L[lang], r = req();
+    var h = '<h3 class="group-title" style="margin-top:20px">' + d.regTitle + '</h3><div class="group scroll"><table class="tbl"><thead><tr>';
+    d.th.forEach(function (x) { h += '<th>' + x + '</th>'; });
+    h += '</tr></thead><tbody>';
+    var rows = REG.map(function (x) { return { name: x.name, type: d.types[x.t], term: x.from === x.to ? fmt(x.from) : fmt(x.from) + ' – ' + fmt(x.to), days: x.days, st: x.st, cls: '' }; });
+    rows.push({ name: d.who, type: r.type, term: st.from === st.to ? fmt(st.from) : r.fromTxt + ' – ' + r.toTxt, days: r.days, st: st.decision || 'wait', cls: 'new' });
+    rows.forEach(function (x) {
+      h += '<tr class="' + x.cls + '"><td>' + esc(x.name) + '</td><td>' + esc(x.type) + '</td><td>' + x.term + '</td><td>' + x.days + '</td><td><span class="pill ' + (x.st === 'ok' ? 'ok' : x.st === 'no' ? 'no' : 'wait') + '">' + d.st[x.st] + '</span></td></tr>';
+    });
+    h += '</tbody></table></div>';
+    return h;
+  }
+
+  function confHtml() {
+    var d = L[lang], r = req();
+    return '<h3 class="group-title" style="margin-top:20px">' + d.confirm + '</h3><div class="group pad">' + (st.decision === 'ok' ? d.confOk(r) : d.confNo(r)) + '</div>';
+  }
+
+  function render() {
+    var d = L[lang];
+    document.documentElement.lang = lang;
+    document.title = d.title;
+    document.getElementById('back').textContent = d.back;
+    document.getElementById('eyebrow').textContent = d.eyebrow;
+    document.getElementById('h1').textContent = d.h1;
+    document.getElementById('lead').textContent = d.lead;
+    document.getElementById('note').textContent = d.note;
+    document.getElementById('foot').textContent = d.foot;
+    [].slice.call(document.querySelectorAll('[data-lang]')).forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
+    document.getElementById('steps').innerHTML = stepsHtml();
+    document.getElementById('left').innerHTML = leftHtml();
+    var right = '';
+    if (st.step === 1) right = '<div class="group empty">' + d.empty + '</div>';
+    else { right = mailHtml() + regHtml(); if (st.step === 3) right += confHtml(); }
+    document.getElementById('right').innerHTML = right;
+    bind();
+  }
+
+  function bind() {
+    function $(id) { return document.getElementById(id); }
+    if ($('f-type')) $('f-type').addEventListener('change', function (e) { st.type = +e.target.value; render(); });
+    if ($('f-from')) $('f-from').addEventListener('change', function (e) { st.from = e.target.value; if (st.to < st.from) st.to = st.from; render(); });
+    if ($('f-to')) $('f-to').addEventListener('change', function (e) { st.to = e.target.value; render(); });
+    if ($('f-note')) $('f-note').addEventListener('input', function (e) { st.note = e.target.value; });
+    if ($('send')) $('send').addEventListener('click', function () { st.step = 2; render(); });
+    if ($('ok')) $('ok').addEventListener('click', function () { st.decision = 'ok'; st.step = 3; render(); });
+    if ($('no')) $('no').addEventListener('click', function () { st.decision = 'no'; st.step = 3; render(); });
+    if ($('again')) $('again').addEventListener('click', function () { st.step = 1; st.decision = null; render(); });
+  }
+
+  [].slice.call(document.querySelectorAll('[data-lang]')).forEach(function (b) {
+    b.addEventListener('click', function () { lang = b.dataset.lang; render(); });
+  });
+  render();
+})();
+</script>
+</body>
+</html>
